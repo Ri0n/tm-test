@@ -3,7 +3,8 @@
 #include <string>
 
 /*
- * Next utils were copied from SO
+ * Next utils were copied from StackOverflow.
+ * This is rather a boilerplate code and doesn't worth reimplementation.
  */
 
 namespace TM::str {
@@ -65,6 +66,25 @@ inline std::string jsonEscape(const std::string &s)
         }
     }
     return o.str();
+}
+
+inline void htmlEntitiesDecode(std::string &s)
+{
+    static std::string subs[]
+        = { "& #34;", "&quot;", "& #39;", "&apos;", "& #38;", "&amp;", "& #60;", "&lt;",
+            "& #62;", "&gt;",   "&34;",   "&39;",   "&38;",   "&60;",  "&62;" };
+
+    static std::string reps[]
+        = { "\"", "\"", "'", "'", "&", "&", "<", "<", ">", ">", "\"", "'", "&", "<", ">" };
+
+    size_t found;
+    for (int j = 0; j < 15; j++) {
+        do {
+            found = s.find(subs[j]);
+            if (found != std::string::npos)
+                s.replace(found, subs[j].length(), reps[j]);
+        } while (found != std::string::npos);
+    }
 }
 
 } // namespace TM::str

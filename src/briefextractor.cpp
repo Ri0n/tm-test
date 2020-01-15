@@ -46,10 +46,11 @@ BriefExtractor::Links BriefExtractor::links(const std::string &data, const std::
     Links       ret;
     std::string d = data;
     while (std::regex_search(d, sm, re)) {
-        // TODO we have to also convert XML entities in both links and titles
         std::string link  = sm[1];
         std::string title = sm[2];
         str::trim(title);
+        str::htmlEntitiesDecode(link);
+        str::htmlEntitiesDecode(title);
         if (link.empty()) {
             link = base_url;
         } else if (link[0] == '/') { // relative

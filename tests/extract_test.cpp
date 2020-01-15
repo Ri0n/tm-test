@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <gtest/gtest.h>
 
 #include "briefextractor.h"
@@ -33,20 +34,24 @@ TEST(extract, links_map)
             </a>
           </div>
                        )";
-    auto        m    = TM::BriefExtractor::linksMap(data, "http://testhost/");
+    auto        m    = TM::BriefExtractor::links(data, "http://testhost/");
+
+    auto findLink = [&](const std::string &link) {
+        return std::find_if(m.cbegin(), m.cend(), [&](auto const &v) { return v.first == link; });
+    };
+
     ASSERT_EQ(m.size(), 3);
-    ASSERT_TRUE(m.find("http://hello/world") != m.end());
-    ASSERT_TRUE(m.find("https://dark/net") != m.end());
-    ASSERT_TRUE(m.find("http://testhost/test") != m.end());
-    ASSERT_EQ(m["https://dark/net"], "Don't click this secret link");
+    ASSERT_TRUE(findLink("http://hello/world") != m.end());
+    ASSERT_TRUE(findLink("https://dark/net") != m.end());
+    ASSERT_TRUE(findLink("http://testhost/test") != m.end());
+    ASSERT_EQ(findLink("https://dark/net")->second, "Don't click this secret link");
 }
 
 TEST(extract, json_gen)
 {
-    std::map<std::string, std::string> m
-        = { { "http://hello/world", "The World\ngot crazy" },
-            { "https://dark/net", "Don't click this \"secret link\"" } };
-    std::string data = TM::BriefExtractor::mapToJson(m);
+    TM::BriefExtractor::Links m    = { { "http://hello/world", "The World\ngot crazy" },
+                                    { "https://dark/net", "Don't click this \"secret link\"" } };
+    std::string               data = TM::BriefExtractor::linksToJson(m);
     ASSERT_EQ(data, R"({ news: [ {
 title:"The World\ngot crazy",
 link:"http://hello/world"

@@ -39,13 +39,12 @@ std::string BriefExtractor::extractDiv(const std::string &data, std::size_t star
     return ret;
 }
 
-std::map<std::string, std::string> BriefExtractor::linksMap(const std::string &data,
-                                                            const std::string &base_url)
+BriefExtractor::Links BriefExtractor::links(const std::string &data, const std::string &base_url)
 {
-    std::regex                         re(R"re(<a[\s]+href="([^"]*)"[\s]*>([^<]*)</a>)re");
-    std::smatch                        sm;
-    std::map<std::string, std::string> ret;
-    std::string                        d = data;
+    std::regex  re(R"re(<a[\s]+href="([^"]*)"[\s]*>([^<]*)</a>)re");
+    std::smatch sm;
+    Links       ret;
+    std::string d = data;
     while (std::regex_search(d, sm, re)) {
         // TODO we have to also convert XML entities in both links and titles
         std::string link  = sm[1];
@@ -60,7 +59,7 @@ std::map<std::string, std::string> BriefExtractor::linksMap(const std::string &d
                 link = base_url + link;
             }
         }
-        ret.insert(std::make_pair(link, title));
+        ret.push_back(std::make_pair(link, title));
         d = sm.suffix();
     }
     return ret;
@@ -71,7 +70,7 @@ std::map<std::string, std::string> BriefExtractor::linksMap(const std::string &d
  * @param links
  * @return json string representation
  */
-std::string BriefExtractor::mapToJson(const std::map<std::string, std::string> &links)
+std::string BriefExtractor::linksToJson(const Links &links)
 {
     // it's way better to use any existing lib. nlohmann json for example is just perfect
     // but we avoid libs usage and the requirement was to generate invalid json (unquoted keys)
@@ -97,8 +96,7 @@ std::string BriefExtractor::extract(const std::string &html, const std::string &
     if (div.empty())
         throw NoValidBrief("invalid html for Brief");
 
-    auto links = linksMap(div, base_url);
-    return mapToJson(links);
+    return linksToJson(links(div, base_url));
 }
 
 } // namespace TM

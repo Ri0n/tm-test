@@ -7,9 +7,6 @@ The code implemented is hardly a real life example is how the requested thing ha
 
 The second moment to notice it's epoll. Yes all this asynchronous logic complicates the code but the intention was to demonstrate my knowledge, not to make something simple and worthless. And after all I like epoll, I used it in my other projects. But in the next ones I'd use some wrapper like libev or something. Well it depends on a project.
 
-Known problem:
-Extracts slightly more than expected. To be fixed soon.
-
 Tested on Ubuntu 19.10
 
 Dependencies:

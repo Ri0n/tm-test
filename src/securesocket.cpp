@@ -49,6 +49,18 @@ static void sslInit()
     sslInitialized = true;
 }
 
+static void SSL_trace(int write_p, int version, int content_type, const void *buf, size_t len,
+                      SSL *ssl, void *arg)
+{
+    std::ostringstream verstr;
+    if (version >= TLS1_VERSION && version <= TLS_MAX_VERSION) {
+        verstr << "tls" << char(version - TLS1_VERSION + '0');
+    } else {
+        verstr << "unknown_ver";
+    }
+    Log("SSL trace: ") << (write_p ? "sent " : "recv ") << verstr.str() << " ct=" << content_type;
+}
+
 static void logSsl()
 {
     while (unsigned long err = ERR_get_error()) {
@@ -85,17 +97,9 @@ void SecureSocket::on_connected()
         on_disconnect();
         return;
     }
+    SSL_set_tlsext_host_name(d->ssl, remoteHostname().c_str());
 
-    SSL_set_cipher_list(d->ssl, "ECDHE-RSA-AES128-GCM-SHA256");
-
-    int         prio = 0;
-    const char *name;
-    Log("ciphers:");
-    do {
-        name = SSL_get_cipher_list(d->ssl, prio++);
-        if (name)
-            Log(" ") << name;
-    } while (name);
+    SSL_set_msg_callback(d->ssl, SSL_trace);
 
     SSL_set_fd(d->ssl, fd);
     if (SSL_connect(d->ssl) <= 0) {

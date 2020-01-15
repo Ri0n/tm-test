@@ -32,8 +32,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    bool finished = false;
-    auto client   = std::make_shared<TM::HttpClient>(reactor, "http://time.com");
+    bool        finished = false;
+    std::string url      = "http://time.com";
+    auto        client   = std::make_shared<TM::HttpClient>(reactor, url);
     client->execute([&](const std::string &data) {
         finished = true;
         reactor->stop();
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
             std::cout << "got empty contents. try verbose (-v) mode\n" << std::flush;
         } else {
             try {
-                std::cout << TM::BriefExtractor::extract(data) << "\n";
+                std::cout << TM::BriefExtractor::extract(data, url) << "\n";
             } catch (std::exception &e) {
                 std::cerr << "There was an error extracting brief: " << e.what() << "\n";
             }

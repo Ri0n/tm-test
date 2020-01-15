@@ -25,7 +25,7 @@ TEST(extract, links_map)
     std::string data = R"(
             <div>
               <div><a href="http://hello/world">The World got crazy</a>
-              </div>
+              </div><a href="/test">Just a test</a>
             </div>
             <a
                href="https://dark/net"
@@ -33,10 +33,11 @@ TEST(extract, links_map)
             </a>
           </div>
                        )";
-    auto        m    = TM::BriefExtractor::linksMap(data);
-    ASSERT_EQ(m.size(), 2);
+    auto        m    = TM::BriefExtractor::linksMap(data, "http://testhost/");
+    ASSERT_EQ(m.size(), 3);
     ASSERT_TRUE(m.find("http://hello/world") != m.end());
     ASSERT_TRUE(m.find("https://dark/net") != m.end());
+    ASSERT_TRUE(m.find("http://testhost/test") != m.end());
     ASSERT_EQ(m["https://dark/net"], "Don't click this secret link");
 }
 

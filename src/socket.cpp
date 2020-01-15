@@ -94,6 +94,8 @@ void Socket::setReadyReadCallback(Socket::Callback callback) { d->readyReadCB = 
 
 void Socket::setReadyWriteCallback(Socket::Callback callback) { d->readyWriteCB = callback; }
 
+const std::string &Socket::remoteHostname() const { return d->host; }
+
 void Socket::connect(const std::string &host, std::uint16_t port)
 {
     d->host = host;

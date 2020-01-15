@@ -38,7 +38,8 @@ std::string BriefExtractor::extractDiv(const std::string &data, std::size_t star
     return ret;
 }
 
-std::map<std::string, std::string> BriefExtractor::linksMap(const std::string &data)
+std::map<std::string, std::string> BriefExtractor::linksMap(const std::string &data,
+                                                            const std::string &base_url)
 {
     std::regex                         re(R"re(<a[\s]+href="([^"]*)"[\s]*>([^<]*)</a>)re");
     std::smatch                        sm;
@@ -46,9 +47,19 @@ std::map<std::string, std::string> BriefExtractor::linksMap(const std::string &d
     std::string                        d = data;
     while (std::regex_search(d, sm, re)) {
         // TODO we have to also convert XML entities in both links and titles
+        std::string link  = sm[1];
         std::string title = sm[2];
         str::trim(title);
-        ret.insert(std::make_pair(sm[1], title));
+        if (link.empty()) {
+            link = base_url;
+        } else if (link[0] == '/') { // relative
+            if (base_url[base_url.size() - 1] == '/') {
+                link = base_url + link.substr(1);
+            } else {
+                link = base_url + link;
+            }
+        }
+        ret.insert(std::make_pair(link, title));
         d = sm.suffix();
     }
     return ret;
@@ -75,7 +86,7 @@ std::string BriefExtractor::mapToJson(const std::map<std::string, std::string> &
     return "{ news: [ " + ret.str() + "]}";
 }
 
-std::string BriefExtractor::extract(const std::string &html)
+std::string BriefExtractor::extract(const std::string &html, const std::string &base_url)
 {
     auto idx = html.find(">The Brief<");
     if (idx == std::string::npos || (idx = html.find("</div>", idx)) == std::string::npos)
@@ -85,7 +96,7 @@ std::string BriefExtractor::extract(const std::string &html)
     if (div.empty())
         throw NoValidBrief("invalid html for Brief");
 
-    auto links = linksMap(div);
+    auto links = linksMap(div, base_url);
     return mapToJson(links);
 }
 

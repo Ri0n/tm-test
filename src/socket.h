@@ -50,6 +50,8 @@ public:
     void setReadyReadCallback(Callback callback);
     void setReadyWriteCallback(Callback callback);
 
+    const std::string &remoteHostname() const;
+
     virtual void connect(const std::string &host, std::uint16_t port);
     virtual void disconnect();
 

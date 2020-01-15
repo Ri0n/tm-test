@@ -113,6 +113,7 @@ void ReactorEpoll::removeDevice(std::shared_ptr<Device> dev)
 {
     auto fd = dev->fileDescriptor();
     epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, nullptr);
+    _devices.erase(fd);
 }
 
 } // namespace TM

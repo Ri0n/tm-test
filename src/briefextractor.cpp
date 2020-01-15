@@ -33,7 +33,8 @@ std::string BriefExtractor::extractDiv(const std::string &data, std::size_t star
             level--;
         idx++;
     }
-    auto ret = data.substr(0, idx - 3);
+    idx -= 3; // on the position of outside closing div
+    auto ret = data.substr(startPos, idx - startPos);
     str::trim(ret);
     return ret;
 }

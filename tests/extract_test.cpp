@@ -25,12 +25,12 @@ TEST(extract, links_map)
 {
     std::string data = R"(
             <div>
-              <div><a href="http://hello/world">The World got crazy</a>
+              <div><a href="http://hello/world?a&amp;b">The World got crazy</a>
               </div><a href="/test">Just a test</a>
             </div>
             <a
                href="https://dark/net"
-            >Don't click this secret link
+            >Don't click &quot;this&quot; secret link
             </a>
           </div>
                        )";
@@ -41,10 +41,10 @@ TEST(extract, links_map)
     };
 
     ASSERT_EQ(m.size(), 3);
-    ASSERT_TRUE(findLink("http://hello/world") != m.end());
+    ASSERT_TRUE(findLink("http://hello/world?a&b") != m.end());
     ASSERT_TRUE(findLink("https://dark/net") != m.end());
     ASSERT_TRUE(findLink("http://testhost/test") != m.end());
-    ASSERT_EQ(findLink("https://dark/net")->second, "Don't click this secret link");
+    ASSERT_EQ(findLink("https://dark/net")->second, "Don't click \"this\" secret link");
 }
 
 TEST(extract, json_gen)

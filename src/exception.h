@@ -34,8 +34,12 @@
 
 namespace TM {
 
-class ReactorException : public std::runtime_error
-{
+class ReactorException : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
+
+class NoValidBrief : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
 };

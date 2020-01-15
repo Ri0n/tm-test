@@ -65,13 +65,15 @@ void ReactorEpoll::start()
             break;
         }
         for (int i = 0; i < n; i++) {
-            auto &ev       = events[i];
-            auto  userData = reinterpret_cast<UserData *>(ev.data.ptr);
-            auto  dev      = userData->device.lock();
-            if (!dev) {
-                epoll_ctl(_epfd, EPOLL_CTL_DEL, userData->fd, nullptr);
+            auto &ev = events[i];
+            // auto  userData = reinterpret_cast<UserData *>(ev.data.ptr);
+            // auto  dev      = userData->device.lock();
+            auto devIt = _devices.find(ev.data.fd);
+            if (devIt == _devices.end()) {
+                epoll_ctl(_epfd, EPOLL_CTL_DEL, ev.data.fd, nullptr);
                 continue;
             }
+            auto dev = devIt->second;
 
             if (ev.events & EPOLLHUP || ev.events & EPOLLERR) {
                 std::ostringstream ss;
@@ -95,14 +97,13 @@ void ReactorEpoll::stop() { _active = false; }
 void ReactorEpoll::addDevice(std::shared_ptr<Device> dev)
 {
     auto fd = dev->fileDescriptor();
-
-    auto ud    = new UserData;
-    ud->fd     = fd;
-    ud->device = dev;
+    if (fd == -1)
+        throw ReactorException("Device is not open");
+    _devices.insert(std::make_pair(fd, dev));
 
     epoll_event ev;
-    ev.data.ptr = ud;
-    ev.events   = EPOLLIN | EPOLLOUT;
+    ev.data.fd = fd;
+    ev.events  = EPOLLIN | EPOLLOUT;
     if (epoll_ctl(_epfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
         Log::syserr("Failed to add fd to epoll") << " fd=" << fd;
     }

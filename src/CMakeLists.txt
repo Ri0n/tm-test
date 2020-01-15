@@ -21,6 +21,7 @@ add_library(${PROJECT_NAME} STATIC
     "url.cpp"
     "socket.cpp"
     "securesocket.cpp"
+    "briefextractor.cpp"
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

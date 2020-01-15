@@ -40,8 +40,10 @@ Log::Log(std::string &&str) { _stream << std::move(str); }
 Log::~Log()
 {
     _stream << "\n";
-    std::cout << _stream.str();
-    fflush(stdout);
+    if (_enabled) {
+        std::cout << _stream.str();
+        fflush(stdout);
+    }
 }
 
 Log Log::syserr(std::string &&str)
@@ -52,5 +54,9 @@ Log Log::syserr(std::string &&str)
 
     return Log(tmp.str());
 }
+
+void Log::setEnabled(bool enabled) { Log::_enabled = enabled; }
+
+bool Log::_enabled = false;
 
 } // namespace TM

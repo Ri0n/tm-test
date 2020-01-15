@@ -30,6 +30,7 @@
 #ifndef REACTOREPOLL_H
 #define REACTOREPOLL_H
 
+#include <map>
 #include <memory>
 #include <unordered_map>
 
@@ -55,8 +56,9 @@ private:
     };
     static const int MaxEvents = 16;
 
-    bool _active = false;
-    int  _epfd   = -1;
+    bool                                   _active = false;
+    int                                    _epfd   = -1;
+    std::map<int, std::shared_ptr<Device>> _devices;
 };
 
 } // namespace TM

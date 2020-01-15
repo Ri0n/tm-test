@@ -74,13 +74,29 @@ SecureSocket::~SecureSocket()
 
 void SecureSocket::on_connected()
 {
-    d->ssl = SSL_new(SSL_CTX_new(TLS_client_method()));
-    if (!d->ssl) {
+    const SSL_METHOD *method = TLS_client_method();
+    SSL_CTX *         ctx;
+
+    if (!(method = TLS_client_method()) || !(ctx = SSL_CTX_new(method))
+        || !(d->ssl = SSL_new(ctx))) {
+
         Log("SSL context init error");
         logSsl();
         on_disconnect();
         return;
     }
+
+    SSL_set_cipher_list(d->ssl, "ECDHE-RSA-AES128-GCM-SHA256");
+
+    int         prio = 0;
+    const char *name;
+    Log("ciphers:");
+    do {
+        name = SSL_get_cipher_list(d->ssl, prio++);
+        if (name)
+            Log(" ") << name;
+    } while (name);
+
     SSL_set_fd(d->ssl, fd);
     if (SSL_connect(d->ssl) <= 0) {
         Log("SSL connection failure");

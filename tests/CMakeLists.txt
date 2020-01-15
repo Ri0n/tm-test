@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.10)
 
 # copied from https://cliutils.gitlab.io/modern-cmake/chapters/testing/googletest.html
 macro(package_add_test TESTNAME)
@@ -16,4 +17,4 @@ macro(package_add_test TESTNAME)
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
 
-package_add_test(tests url_test.cpp)
+package_add_test(tests url_test.cpp extract_test.cpp)

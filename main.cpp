@@ -1,69 +1,55 @@
 #include <iostream>
+#include <unistd.h>
 
+#include "briefextractor.h"
 #include "httpclient.h"
 #include "log.h"
 #include "reactor.h"
 
 using namespace std;
 
-std::string_view extractBrief(std::string_view data)
+int main(int argc, char *argv[])
 {
-    int         level    = 1;
-    std::size_t idxOpen  = 0;
-    std::size_t idxClose = 0;
-    while (level > 0) {
-        auto idx      = std::min(idxOpen, idxClose);
-        auto idxOpen  = data.find("<div", idx);
-        auto idxClose = data.find("</div>", idx);
-        // the above can be optimized quite a bit but it will triple the code size
+    int opt;
+    while ((opt = getopt(argc, argv, "vh")) > 0)
+        switch (opt) {
+        case 'v':
+            TM::Log::setEnabled(true);
+            break;
 
-        if (idxOpen == std::string::npos || idxClose == std::string::npos)
-            return std::string_view(); // bull shit
-        if (idxOpen < idxClose) {
-            // go to inside div
-            level++;
-            idxOpen++;
-        } else {
-            level--;
-            idxClose++;
+        case 'h':
+        default:
+            std::cout << R"(
+ -v  - enable verbose mode
+ -h  - show this help
+)";
+            break;
         }
-    }
-    return data.substr(0, idxClose);
-}
 
-std::string briefToJson(std::string_view data) {}
-
-int main()
-{
     auto reactor = TM::Reactor::factory("epoll");
     if (!reactor) {
-        TM::Log("failed to find epoll reactor");
+        std::cerr << "failed to find epoll reactor\n";
         return -1;
     }
 
-    auto client = std::make_shared<TM::HttpClient>(reactor, "http://time.com");
+    bool finished = false;
+    auto client   = std::make_shared<TM::HttpClient>(reactor, "http://time.com");
     client->execute([&](const std::string &data) {
+        finished = true;
         reactor->stop();
         if (data.empty()) {
-            std::cout << "got empty contents. try verbose (-v) mode\n";
+            std::cout << "got empty contents. try verbose (-v) mode\n" << std::flush;
         } else {
-            auto idx = data.find(">The Brief<");
-            if (idx == std::string::npos || (idx = data.find("</div>", idx)) == std::string::npos) {
-                std::cout << "Unable to find Brief. try verbose (-v) mode\n";
-                return;
-            }
-
-            auto view  = std::string_view(data).substr(idx + 6);
-            auto brief = extractBrief(view);
-            if (brief.empty()) {
-                std::cout << "Unable to extract Brief. try verbose (-v) mode\n";
-            } else {
-                std::cout << briefToJson(brief);
+            try {
+                std::cout << TM::BriefExtractor::extract(data) << "\n";
+            } catch (std::exception &e) {
+                std::cerr << "There was an error extracting brief: " << e.what() << "\n";
             }
         }
     });
 
-    reactor->start();
+    if (!finished)
+        reactor->start();
 
     return 0;
 }

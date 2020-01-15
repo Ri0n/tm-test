@@ -157,6 +157,8 @@ struct HttpClient::Private {
             }
         });
 
+        socket->setDisconnectedCallback([this]() { callback(""); });
+
         socket->connect(url.host(), url.port());
     }
 

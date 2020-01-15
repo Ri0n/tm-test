@@ -41,10 +41,13 @@ public:
 
     static Log syserr(std::string &&str);
 
+    static void setEnabled(bool enabled);
+
     template <typename T> auto &operator<<(T &&arg) { return _stream << std::forward<T>(arg); }
 
 private:
     std::ostringstream _stream;
+    static bool        _enabled;
 };
 
 } // namespace TM
